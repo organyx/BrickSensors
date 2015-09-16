@@ -1,6 +1,17 @@
 <resources>
+    //GENERAL
     <string name="app_name">BrickSensors</string>
-
+    <string name="back">Back</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+
+    //MAIN ACTIVITY
+    <string name="welcome">Make a choice</string>
+    //COMPASS ACTIVITY
+    <string name="compass">Compass</string>
+    //LIGHT SABER ACTIVITY
+    <string name="light_saber">Light Saber</string>
+    //GEIGER COUNTER
+    <string name="geiger">Geiger Counter</string>
+    <string name="title_activity_compass">CompassActivity</string>
 </resources>
