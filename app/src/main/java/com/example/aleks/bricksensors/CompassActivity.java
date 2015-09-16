@@ -23,6 +23,8 @@ public class CompassActivity extends AppCompatActivity implements SensorEventLis
     private float[] readingMagnometer = new float[3];
     private float[] readingAccelerometer = new float[3];
 
+    private float ALPHA = 0.15f;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -83,38 +85,36 @@ public class CompassActivity extends AppCompatActivity implements SensorEventLis
 
         if(event.sensor == accelerometer)
         {
-            readingAccelerometer[0] = event.values[0];
-            readingAccelerometer[1] = event.values[1];
-            readingAccelerometer[2] = event.values[2];
+//            readingAccelerometer[0] = event.values[0];
+//            readingAccelerometer[1] = event.values[1];
+//            readingAccelerometer[2] = event.values[2];
+            readingAccelerometer = lowPass(event.values.clone(), readingAccelerometer);
         }
         if(event.sensor == magnometer)
         {
-            readingMagnometer[0] = event.values[0];
-            readingMagnometer[1] = event.values[1];
-            readingMagnometer[2] = event.values[2];
+//            readingMagnometer[0] = event.values[0];
+//            readingMagnometer[1] = event.values[1];
+//            readingMagnometer[2] = event.values[2];
+            readingMagnometer = lowPass(event.values.clone(), readingMagnometer);
         }
-
-        //float[] rotation2 = rotation.clone();
-        //rotation.clone();
 
         SensorManager.getRotationMatrix(rotation, null, readingAccelerometer, readingMagnometer);
         SensorManager.getOrientation(rotation, orientation);
         float azimuthRadians = orientation[0];
         float azimuthDegrees = -(float) (Math.toDegrees(azimuthRadians) + 360) % 360;
 
-
-
         doAnimation(currentCompassAngle, azimuthDegrees, compassImage);
+
         currentCompassAngle = azimuthDegrees;
     }
 
     private void doAnimation(float from, float to, ImageView rotateImg) {
 
-//        if (from != to) {
+//        if (mCompassPositionDegree != mCompassDegree) {
 //
-//            float d = Math.abs(from - to);
+//            float d = Math.abs(mCompassPositionDegree - mCompassDegree);
 //
-//            float s = (to - from) / d;
+//            float s = (mCompassDegree - mCompassPositionDegree) / d;
 //
 //            if (d > 180) {
 //
@@ -124,11 +124,11 @@ public class CompassActivity extends AppCompatActivity implements SensorEventLis
 //
 //            }
 //
-//            from += s * 0.3f * d;
+//            mCompassPositionDegree += s * 0.3f * d;
 //
-//            if (from < 0) {
+//            if (mCompassPositionDegree < 0) {
 //
-//                from = 360 - from;
+//                mCompassPositionDegree = 360 - mCompassPositionDegree;
 //
 //            }
 //
@@ -148,5 +148,16 @@ public class CompassActivity extends AppCompatActivity implements SensorEventLis
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
+    }
+
+    protected float[] lowPass(float[] input, float[] output)
+    {
+        if(output == null)
+            return input;
+        for (int i = 0; i < input.length; i++)
+        {
+            output[i] = output[i] + ALPHA * (input[i] - output[i]);
+        }
+        return output;
     }
 }
