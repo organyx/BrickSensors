@@ -60,7 +60,7 @@ public class GeigerCounterActivity extends AppCompatActivity implements SensorEv
             Toast.makeText(this, "Pre Lollipop", Toast.LENGTH_LONG).show();
         }
         soundPool.setOnLoadCompleteListener(this);
-        highClick = soundPool.load(this, R.raw.geif,1);
+        highClick = soundPool.load(this, R.raw.gc,1);
         midClick = soundPool.load(this, R.raw.gc,2);
         lowClick = soundPool.load(this, R.raw.gc,3);
     }
