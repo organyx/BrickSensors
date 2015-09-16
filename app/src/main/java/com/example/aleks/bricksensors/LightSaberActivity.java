@@ -11,6 +11,7 @@ import android.media.SoundPool;
 import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageView;
@@ -21,10 +22,11 @@ public class LightSaberActivity extends AppCompatActivity implements SoundPool.O
     private ImageView lightSaber;
     private SensorManager sensorManager;
     private Sensor accelerometer;
+    private float[] readingAccelerometer = new float[3];
+
+    private float ALPHA = 0.15f;
 
     private SoundPool soundPool;
-    private int idSlowSaber;
-    private int idSwing;
     private int slowSaber;
     private int swing;
 
@@ -91,18 +93,18 @@ public class LightSaberActivity extends AppCompatActivity implements SoundPool.O
     }
 
     @Override
-    public void onLoadComplete(SoundPool pool, int arg1, int arg2)
+    public void onLoadComplete(SoundPool soundPool, int sampleId, int status)
     {
-        if (arg2 == 0)
+        if (status == 0)
         {
-            if(arg1 == slowSaber)
+            if(sampleId == slowSaber)
             {
-                idSlowSaber = soundPool.play(slowSaber, 0.2f, 0.2f, 1, -1, 1f);
+               this.soundPool.play(slowSaber, 0.2f, 0.2f, 1, -1, 1f);
             }
         }
         else
         {
-            Toast.makeText(LightSaberActivity.this, "Error loading sound: "+arg1, Toast.LENGTH_LONG).show();
+            Toast.makeText(LightSaberActivity.this, "Error loading sound: "+sampleId, Toast.LENGTH_LONG).show();
         }
     }
 
@@ -110,7 +112,7 @@ public class LightSaberActivity extends AppCompatActivity implements SoundPool.O
     protected void onDestroy()
     {
         super.onDestroy();
-        soundPool.stop(idSlowSaber);
+        soundPool.stop(slowSaber);
         soundPool.release();
     }
 
@@ -127,16 +129,35 @@ public class LightSaberActivity extends AppCompatActivity implements SoundPool.O
     {
         super.onPause();
         sensorManager.unregisterListener(this, accelerometer);
-        soundPool.autoResume();
+        soundPool.autoPause();
     }
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-
+        if(event.sensor == accelerometer)
+        {
+//            readingAccelerometer[0] = event.values[0];
+//            readingAccelerometer[1] = event.values[1];
+//            readingAccelerometer[2] = event.values[2];
+            readingAccelerometer = lowPass(event.values.clone(), readingAccelerometer);
+        }
+//        soundPool.setVolume(slowSaber, 0.8f, 0.8f);
+//        Log.d("Accel", "Accelerometer Data: " + readingAccelerometer[0]);
     }
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
+    }
+
+    protected float[] lowPass(float[] input, float[] output)
+    {
+        if(output == null)
+            return input;
+        for (int i = 0; i < input.length; i++)
+        {
+            output[i] = output[i] + ALPHA * (input[i] - output[i]);
+        }
+        return output;
     }
 }

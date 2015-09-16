@@ -11,6 +11,7 @@ import android.media.SoundPool;
 import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
@@ -20,6 +21,7 @@ public class GeigerCounterActivity extends AppCompatActivity implements SensorEv
 
     private TextView tvRadians;
     private TextView tvDegrees;
+    private TextView tvC;
 
     private SensorManager sensorManager;
     private Sensor accelerometer;
@@ -33,6 +35,8 @@ public class GeigerCounterActivity extends AppCompatActivity implements SensorEv
     private int midClick;
     private int lowClick;
 
+    private boolean loadingCompleted = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,6 +44,7 @@ public class GeigerCounterActivity extends AppCompatActivity implements SensorEv
 
         tvRadians = (TextView) findViewById(R.id.tvRadians);
         tvDegrees = (TextView) findViewById(R.id.tvDegrees);
+        tvC = (TextView) findViewById(R.id.tvC);
 
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
@@ -54,10 +59,10 @@ public class GeigerCounterActivity extends AppCompatActivity implements SensorEv
             createOldSoundPool();
             Toast.makeText(this, "Pre Lollipop", Toast.LENGTH_LONG).show();
         }
-
-        highClick = soundPool.load(this, R.raw.geiger_high,1);
-        midClick = soundPool.load(this, R.raw.geiger_mid,2);
-        lowClick = soundPool.load(this, R.raw.geiger_low,3);
+        soundPool.setOnLoadCompleteListener(this);
+        highClick = soundPool.load(this, R.raw.geif,1);
+        midClick = soundPool.load(this, R.raw.gc,2);
+        lowClick = soundPool.load(this, R.raw.gc,3);
     }
 
     @SuppressWarnings("deprecation")
@@ -100,6 +105,7 @@ public class GeigerCounterActivity extends AppCompatActivity implements SensorEv
 
     @Override
     public void onSensorChanged(SensorEvent event) {
+        Log.d("onSensorChanged", "onSensorChanged HAS STARTED");
         float[] rotation = new float[9];
         float[] orientation = new float[3];
 
@@ -116,14 +122,23 @@ public class GeigerCounterActivity extends AppCompatActivity implements SensorEv
 
 
 
-        doGeigerStuff(azimuthRadians, azimuthDegrees);
+        doGeigerStuff(readingAccelerometer[0], readingAccelerometer[1], readingAccelerometer[2]);
 //        currentCompassAngle = azimuthDegrees;
     }
 
-    public void doGeigerStuff(float a, float b)
+    public void doGeigerStuff(float a, float b, float c)
     {
-        tvDegrees.setText("Degrees: " + a);
-        tvRadians.setText("Radians: " + b);
+        if(loadingCompleted) {
+            tvDegrees.setText("A: " + a);
+            if (b < 10f && b >= 7f && c > 0 && c <= 3)
+                soundPool.play(highClick, 0.5f, 0.5f, 5, -1, 1f);
+            tvRadians.setText("B: " + b);
+            if (b < 7f && b >= 3f && c > 3 && c <= 7)
+                soundPool.play(midClick, 0.5f, 0.5f, 5, -1, 1f);
+            tvC.setText("C: " + c);
+            if (b < 3f && b >= 0f && c > 7 && c <= 10)
+                soundPool.play(lowClick, 0.5f, 0.5f, 5, -1, 1f);
+        }
     }
 
 
@@ -152,26 +167,31 @@ public class GeigerCounterActivity extends AppCompatActivity implements SensorEv
     public void onDestroy()
     {
         super.onDestroy();
-        soundPool.stop(idHighClick);
-        soundPool.stop(idMidClick);
-        soundPool.stop(idLowClick);
+        soundPool.stop(highClick);
+        soundPool.stop(midClick);
+        soundPool.stop(lowClick);
         soundPool.release();
     }
 
     @Override
     public void onLoadComplete(SoundPool soundPool, int sampleId, int status) {
+        Log.d("onLoadComplete", "onLoadComplete HAS STARTED");
         if(status == 0){
             if (sampleId == highClick)
             {
-                idHighClick = soundPool.play(highClick, 0.2f, 0.2f, 1, -1, 1f);
+                loadingCompleted = true;
+                idHighClick = this.soundPool.play(highClick, 0.8f, 0.8f, 1, -1, 1f);
+                Log.d("High", "Loaded High");
             }
             if (sampleId == midClick)
             {
-                idMidClick = soundPool.play(midClick, 0.2f, 0.2f, 1, -1, 1f);
+                //idMidClick = soundPool.play(midClick, 0.2f, 0.2f, 1, -1, 1f);
+                Log.d("Mid", "Loaded Mid");
             }
             if (sampleId == lowClick)
             {
-                idLowClick = soundPool.play(lowClick, 0.2f, 0.2f, 1, -1, 1f);
+                //idLowClick = soundPool.play(lowClick, 0.2f, 0.2f, 1, -1, 1f);
+                Log.d("Low", "Loaded Low");
             }
         }
         else
