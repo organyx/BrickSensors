@@ -109,6 +109,31 @@ public class CompassActivity extends AppCompatActivity implements SensorEventLis
     }
 
     private void doAnimation(float from, float to, ImageView rotateImg) {
+
+//        if (from != to) {
+//
+//            float d = Math.abs(from - to);
+//
+//            float s = (to - from) / d;
+//
+//            if (d > 180) {
+//
+//                s = -s;
+//
+//                d = 360 - d;
+//
+//            }
+//
+//            from += s * 0.3f * d;
+//
+//            if (from < 0) {
+//
+//                from = 360 - from;
+//
+//            }
+//
+//        }
+
         RotateAnimation rotateAnimation = new RotateAnimation(
                 from,
                 to,

@@ -14,4 +14,6 @@
     //GEIGER COUNTER
     <string name="geiger">Geiger Counter</string>
     <string name="title_activity_compass">CompassActivity</string>
+    <string name="title_activity_light_saber">LightSaberActivity</string>
+    <string name="title_activity_geiger_counter">GeigerCounterActivity</string>
 </resources>

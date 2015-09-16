@@ -26,11 +26,13 @@
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
-            android:text="@string/light_saber"/>
+            android:text="@string/light_saber"
+            android:onClick="onBtnLightSaberClick"/>
         <Button
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
-            android:text="@string/geiger"/>
+            android:text="@string/geiger"
+            android:onClick="onBtnGeigerClick"/>
     </LinearLayout>
 </RelativeLayout>
