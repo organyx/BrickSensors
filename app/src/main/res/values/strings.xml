@@ -16,6 +16,7 @@
     <string name="title_activity_compass">CompassActivity</string>
     <string name="title_activity_light_saber">LightSaberActivity</string>
     <string name="title_activity_geiger_counter">GeigerCounterActivity</string>
-    <string name="radians">Radians: </string>
-    <string name="degrees">Degrees: </string>
+    <string name="x">X: </string>
+    <string name="y">Y: </string>
+    <string name="z">Z: </string>
 </resources>

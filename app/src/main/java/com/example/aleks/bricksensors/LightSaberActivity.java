@@ -17,9 +17,12 @@ import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import java.util.concurrent.TimeUnit;
+
 public class LightSaberActivity extends AppCompatActivity implements SoundPool.OnLoadCompleteListener, SensorEventListener {
 
     private ImageView lightSaber;
+
     private SensorManager sensorManager;
     private Sensor accelerometer;
     private float[] readingAccelerometer = new float[3];
@@ -27,8 +30,11 @@ public class LightSaberActivity extends AppCompatActivity implements SoundPool.O
     private float ALPHA = 0.15f;
 
     private SoundPool soundPool;
-    private int slowSaber;
-    private int swing;
+    private int saberSwing;
+    private int hf;
+    private int lf;
+
+    private boolean loadingCompleted = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,9 +55,10 @@ public class LightSaberActivity extends AppCompatActivity implements SoundPool.O
             createOldSoundPool();
             Toast.makeText(this, "Pre Lollipop", Toast.LENGTH_LONG).show();
         }
-
-        slowSaber = soundPool.load(this, R.raw.slow_sabr, 1);
-        swing = soundPool.load(this, R.raw.sthswng1, 2);
+        soundPool.setOnLoadCompleteListener(this);
+        hf = soundPool.load(this, R.raw.hf, 1);
+        lf = soundPool.load(this, R.raw.lf, 2);
+        saberSwing = soundPool.load(this, R.raw.saberswing, 3);
     }
 
     @SuppressWarnings("deprecation")
@@ -62,7 +69,7 @@ public class LightSaberActivity extends AppCompatActivity implements SoundPool.O
     @TargetApi(21)
     private void createNewSoundPool() {
         AudioAttributes attributes = new AudioAttributes.Builder()
-                .setUsage(AudioAttributes.USAGE_GAME)
+                .setUsage(AudioAttributes.USAGE_NOTIFICATION)
                 .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                 .build();
         soundPool = new SoundPool.Builder()
@@ -95,24 +102,40 @@ public class LightSaberActivity extends AppCompatActivity implements SoundPool.O
     @Override
     public void onLoadComplete(SoundPool soundPool, int sampleId, int status)
     {
+        Log.d("onLoadComplete", "onLoadComplete HAS STARTED");
         if (status == 0)
         {
-            if(sampleId == slowSaber)
+            if(sampleId == hf)
             {
-               this.soundPool.play(slowSaber, 0.2f, 0.2f, 1, -1, 1f);
+                soundPool.play(hf, 0.2f, 0.2f, 1, -1, 1f);
+                Log.d("hf", "Loaded hf");
             }
+            if(sampleId == lf)
+            {
+                soundPool.play(lf, 1f, 1f, 1, -1, 1f);
+                Log.d("lf", "Loaded lf");
+            }
+            if(sampleId == saberSwing)
+            {
+                //soundPool.play(lf, 1f, 1f, 1, -1, 1f);
+                Log.d("Swing", "Loaded Swing");
+            }
+            loadingCompleted = true;
         }
         else
         {
             Toast.makeText(LightSaberActivity.this, "Error loading sound: "+sampleId, Toast.LENGTH_LONG).show();
         }
+        Log.d("onLoadComplete", "onLoadComplete HAS FINISHED");
     }
 
     @Override
     protected void onDestroy()
     {
         super.onDestroy();
-        soundPool.stop(slowSaber);
+        soundPool.stop(saberSwing);
+        soundPool.stop(hf);
+        soundPool.stop(lf);
         soundPool.release();
     }
 
@@ -136,13 +159,43 @@ public class LightSaberActivity extends AppCompatActivity implements SoundPool.O
     public void onSensorChanged(SensorEvent event) {
         if(event.sensor == accelerometer)
         {
-//            readingAccelerometer[0] = event.values[0];
-//            readingAccelerometer[1] = event.values[1];
-//            readingAccelerometer[2] = event.values[2];
-            readingAccelerometer = lowPass(event.values.clone(), readingAccelerometer);
+            readingAccelerometer[0] = event.values[0];
+            readingAccelerometer[1] = event.values[1];
+            readingAccelerometer[2] = event.values[2];
+//            readingAccelerometer = lowPass(event.values.clone(), readingAccelerometer);
         }
-//        soundPool.setVolume(slowSaber, 0.8f, 0.8f);
-//        Log.d("Accel", "Accelerometer Data: " + readingAccelerometer[0]);
+
+        doSaberSounds(readingAccelerometer);
+    }
+
+    public void doSaberSounds(float[] readings)
+    {
+        if(loadingCompleted) {
+            if (readings[0] < -4 && readings[0] > -6 || readings[0] > 4 && readings[0] <6) {
+                soundPool.play(saberSwing, 0.2f, 0.2f, 1, 1, 1f);
+                //soundPool.setVolume(saberSwing, 0.1f, 0.1f);
+            }
+//            if(readings[0] <= -6 || readings[0] >= 6)
+//            {
+////                soundPool.play(saberSwing, 0.8f, 0.8f, 1, 1, 1f);
+////                try {
+////                    TimeUnit.MILLISECONDS.sleep(500);
+////                } catch (InterruptedException e) {
+////                    e.printStackTrace();
+////                }
+//                soundPool.setVolume(saberSwing, 0.8f, 0.8f);
+//            }
+//            if(readings[0] <= -8 || readings[0] >= 8)
+//            {
+////                soundPool.play(saberSwing, 0.2f, 0.2f, 1, 1, 1f);
+////                try {
+////                    TimeUnit.MILLISECONDS.sleep(500);
+////                } catch (InterruptedException e) {
+////                    e.printStackTrace();
+////                }
+//                soundPool.setVolume(saberSwing, 0.1f, 0.1f);
+//            }
+        }
     }
 
     @Override
