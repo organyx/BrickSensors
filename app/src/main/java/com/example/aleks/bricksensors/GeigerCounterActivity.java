@@ -1,6 +1,8 @@
 package com.example.aleks.bricksensors;
 
 import android.annotation.TargetApi;
+import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -14,14 +16,16 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 public class GeigerCounterActivity extends AppCompatActivity implements SensorEventListener,SoundPool.OnLoadCompleteListener {
 
-    private TextView tvRadians;
-    private TextView tvDegrees;
+    private TextView tvA;
+    private TextView tvB;
     private TextView tvC;
+    private ImageView ivHumanStatus;
 
     private SensorManager sensorManager;
     private Sensor accelerometer;
@@ -44,9 +48,17 @@ public class GeigerCounterActivity extends AppCompatActivity implements SensorEv
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_geiger_counter);
 
-        tvRadians = (TextView) findViewById(R.id.tvRadians);
-        tvDegrees = (TextView) findViewById(R.id.tvDegrees);
+        tvA = (TextView) findViewById(R.id.tvA);
+        tvB = (TextView) findViewById(R.id.tvB);
         tvC = (TextView) findViewById(R.id.tvC);
+
+        Typeface customFont = Typeface.createFromAsset(this.getAssets(), "fonts/stalker_font.ttf");
+
+        tvA.setTypeface(customFont);
+        tvB.setTypeface(customFont);
+        tvC.setTypeface(customFont);
+
+        ivHumanStatus = (ImageView)findViewById(R.id.ivHumanStatus);
 
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
@@ -62,9 +74,9 @@ public class GeigerCounterActivity extends AppCompatActivity implements SensorEv
             Toast.makeText(this, "Pre Lollipop", Toast.LENGTH_LONG).show();
         }
         soundPool.setOnLoadCompleteListener(this);
-        highClick = soundPool.load(this, R.raw.geiger_high,1);
-        midClick = soundPool.load(this, R.raw.geiger_mid,2);
-        lowClick = soundPool.load(this, R.raw.geiger_low,3);
+        highClick = soundPool.load(this, R.raw.geiger_high, 1);
+        midClick = soundPool.load(this, R.raw.geiger_mid, 1);
+        lowClick = soundPool.load(this, R.raw.geiger_low, 1);
     }
 
     @SuppressWarnings("deprecation")
@@ -122,22 +134,43 @@ public class GeigerCounterActivity extends AppCompatActivity implements SensorEv
 
 
 
-        doGeigerStuff(readingAccelerometer[0], readingAccelerometer[1], readingAccelerometer[2]);
+        doGeigerStuff(readingAccelerometer);
 //        currentCompassAngle = azimuthDegrees;
     }
 
-    public void doGeigerStuff(float a, float b, float c)
+    public void doGeigerStuff(float[] readings)
     {
+//        Drawable skeleton = getDrawable(R.drawable.skeleton);
+        float x = readings[0];
+        float y = readings[1];
+        float z = readings[2];
+
+        tvA.setText("X: " + x);
+        tvB.setText("Y: " + y);
+        tvC.setText("Z: " + z);
+
         if(loadingCompleted) {
-            tvDegrees.setText("A: " + a);
-            if (b < 10f && b >= 7f && c > 0 && c <= 3)
+
+            if (y >= 9f &&  y <= 10f)
+            {
+                ivHumanStatus.setImageResource(R.drawable.doing_good);
                 soundPool.play(lowClick, 0.5f, 0.5f, 5, -1, 1f);
-            tvRadians.setText("B: " + b);
-            if (b < 7f && b >= 3f && c > 3 && c <= 7)
+            }
+            else if(y >= 7f && y < 9f)
+            {
+
+                ivHumanStatus.setImageResource(R.drawable.protivogaz);
+            }
+            else if (y >= 3f && y < 7f)
+            {
                 soundPool.play(midClick, 0.5f, 0.5f, 5, -1, 1f);
-            tvC.setText("C: " + c);
-            if (b < 3f && b >= 0f && c > 7 && c <= 10)
+                ivHumanStatus.setImageResource(R.drawable.zombie);
+            }
+            else if (y >= 0f && y < 3f )
+            {
                 soundPool.play(highClick, 0.5f, 0.5f, 5, -1, 1f);
+                ivHumanStatus.setImageResource(R.drawable.skeleton);
+            }
         }
     }
 
