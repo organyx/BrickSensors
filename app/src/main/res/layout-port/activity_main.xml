@@ -11,27 +11,35 @@
         android:gravity="center"
         android:layout_margin="50dp">
         <TextView
+            android:id="@+id/tvChoice"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:text="@string/welcome"
+            android:textSize="35sp"
             android:gravity="center"
             android:textColor="@color/white"/>
         <Button
+            android:id="@+id/btnCompass"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
+            android:textSize="40sp"
             android:text="@string/compass"
             android:onClick="onBtnCompassClick"/>
         <Button
+            android:id="@+id/btnLightSaber"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
+            android:textSize="40sp"
             android:text="@string/light_saber"
             android:onClick="onBtnLightSaberClick"/>
         <Button
+            android:id="@+id/btnGeigerCounter"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
+            android:textSize="40sp"
             android:text="@string/geiger"
             android:onClick="onBtnGeigerClick"/>
     </LinearLayout>
