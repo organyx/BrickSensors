@@ -28,18 +28,16 @@ public class GeigerCounterActivity extends AppCompatActivity implements SensorEv
     private TextView tvRads;
     private ImageView ivHumanStatus;
 
-    private float totalRads;
+    private float rads = 0;
 
     private SensorManager sensorManager;
     private Sensor accelerometer;
-    private Sensor magnometer;
     private float[] readingAccelerometer = new float[3];
-    private float[] readingMagnometer = new float[3];
 
     private SoundPool soundPool;
-    private boolean s1 = false;
-    private boolean s2 = false;
-    private boolean s3 = false;
+    private int idHighClick;
+    private int idMidClick;
+    private int idLowClick;
     private int highClick;
     private int midClick;
     private int lowClick;
@@ -58,8 +56,6 @@ public class GeigerCounterActivity extends AppCompatActivity implements SensorEv
         tvC = (TextView) findViewById(R.id.tvC);
         tvRads = (TextView) findViewById(R.id.tvRads);
 
-        totalRads = 0;
-
         Typeface customFont = Typeface.createFromAsset(this.getAssets(), "fonts/stalker_font.ttf");
 
         tvA.setTypeface(customFont);
@@ -71,7 +67,6 @@ public class GeigerCounterActivity extends AppCompatActivity implements SensorEv
 
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        magnometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
 
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
         {
@@ -135,24 +130,13 @@ public class GeigerCounterActivity extends AppCompatActivity implements SensorEv
 
         if(event.sensor == accelerometer)
         {
-            readingAccelerometer[0] = event.values[0];
-            readingAccelerometer[1] = event.values[1];
-            readingAccelerometer[2] = event.values[2];
-//            readingAccelerometer = lowPass(event.values, readingAccelerometer);
+            readingAccelerometer = lowPass(event.values, readingAccelerometer);
         }
 
-        if(event.sensor == magnometer)
-        {
-//            readingMagnometer[0] = event.values[0];
-//            readingMagnometer[1] = event.values[1];
-//            readingMagnometer[2] = event.values[2];
-            readingMagnometer = lowPass(event.values, readingMagnometer);
-        }
+//        SensorManager.getOrientation(rotation, orientation);
+//        float azimuthRadians = orientation[0];
+//        float azimuthDegrees = -(float) (Math.toDegrees(azimuthRadians) + 360) % 360;
 
-        SensorManager.getRotationMatrix(rotation, null, readingAccelerometer, readingMagnometer);
-        SensorManager.getOrientation(rotation, orientation);
-        float azimuthRadians = orientation[0];
-        float azimuthDegrees = -(float) (Math.toDegrees(azimuthRadians) + 360) % 360;
 
 
         doGeigerStuff(readingAccelerometer);
@@ -161,6 +145,7 @@ public class GeigerCounterActivity extends AppCompatActivity implements SensorEv
 
     public void doGeigerStuff(float[] readings)
     {
+//        Drawable skeleton = getDrawable(R.drawable.skeleton);
         float x = readings[0];
         float y = readings[1];
         float z = readings[2];
@@ -168,32 +153,32 @@ public class GeigerCounterActivity extends AppCompatActivity implements SensorEv
         tvA.setText("X: " + x);
         tvB.setText("Y: " + y);
         tvC.setText("Z: " + z);
-        tvRads.setText("Total Rads: " + totalRads);
 
         if(loadingCompleted) {
 
-            if ((y >= 9f &&  y <= 10f))
+            if (y >= 9f &&  y <= 10f)
             {
                 ivHumanStatus.setImageResource(R.drawable.doing_good);
                 soundPool.play(lowClick, 0.5f, 0.5f, 5, -1, 1f);
+                tvRads.setText("Total Rads: " + rads);
             }
-            else if((y >= 6f && y < 9f))
+            else if(y >= 7f && y < 9f)
             {
 
                 ivHumanStatus.setImageResource(R.drawable.protivogaz);
-                tvRads.setText("Total Rads: " + (totalRads += 0.05));
+                tvRads.setText("Total Rads: " + (rads += 0.05));
             }
-            else if (y >= 3f && y < 6f)
+            else if (y >= 3f && y < 7f)
             {
                 soundPool.play(midClick, 0.5f, 0.5f, 5, -1, 1f);
                 ivHumanStatus.setImageResource(R.drawable.zombie);
-                tvRads.setText("Total Rads: " + (totalRads += 0.25));
+                tvRads.setText("Total Rads: " + (rads += 0.1));
             }
-            else if ((y >= 0f && y < 3f ))
+            else if (y >= 0f && y < 3f )
             {
                 soundPool.play(highClick, 0.5f, 0.5f, 5, -1, 1f);
                 ivHumanStatus.setImageResource(R.drawable.skeleton);
-                tvRads.setText("Total Rads: " + (totalRads += 0.5));
+                tvRads.setText("Total Rads: " + (rads += 0.25));
             }
         }
     }
@@ -209,7 +194,6 @@ public class GeigerCounterActivity extends AppCompatActivity implements SensorEv
     {
         super.onResume();
         sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME);
-        sensorManager.registerListener(this, magnometer, SensorManager.SENSOR_DELAY_GAME);
         soundPool.autoResume();
     }
 
@@ -218,7 +202,6 @@ public class GeigerCounterActivity extends AppCompatActivity implements SensorEv
     {
         super.onPause();
         sensorManager.unregisterListener(this, accelerometer);
-        sensorManager.unregisterListener(this, magnometer);
         soundPool.autoPause();
     }
 
@@ -235,25 +218,20 @@ public class GeigerCounterActivity extends AppCompatActivity implements SensorEv
     @Override
     public void onLoadComplete(SoundPool soundPool, int sampleId, int status) {
         Log.d("onLoadComplete", "onLoadComplete HAS STARTED");
-
         if(status == 0){
             if (sampleId == highClick)
             {
-                s1 = true;
                 Log.d("High", "Loaded High");
             }
             if (sampleId == midClick)
             {
-                s2 = true;
                 Log.d("Mid", "Loaded Mid");
             }
             if (sampleId == lowClick)
             {
-                s3 = true;
                 Log.d("Low", "Loaded Low");
             }
-            if(s1 && s2 && s3)
-                loadingCompleted = true;
+            loadingCompleted = true;
         }
         else
         {
