@@ -13,11 +13,6 @@ import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
 
-    private TextView tvChoice;
-    private Button btnCompass;
-    private Button btnLightSaber;
-    private Button btnGeigerCounter;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -25,17 +20,6 @@ public class MainActivity extends AppCompatActivity {
 
         Log.d("Lifecycle", "======== onCrate ========");
 
-        Typeface customFont = Typeface.createFromAsset(this.getAssets(), "fonts/octin_spraypaint_free.ttf");
-
-        tvChoice = (TextView) findViewById(R.id.tvChoice);
-        btnCompass = (Button) findViewById(R.id.btnCompass);
-        btnLightSaber = (Button) findViewById(R.id.btnLightSaber);
-        btnGeigerCounter = (Button) findViewById(R.id.btnGeigerCounter);
-
-        tvChoice.setTypeface(customFont);
-        btnCompass.setTypeface(customFont);
-        btnLightSaber.setTypeface(customFont);
-        btnGeigerCounter.setTypeface(customFont);
     }
 
     @Override

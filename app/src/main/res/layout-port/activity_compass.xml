@@ -7,7 +7,7 @@
         android:id="@+id/ivCompass"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/compass"
+        android:src="@drawable/compass2"
         android:layout_centerInParent="true"/>
     <Button
         android:layout_width="wrap_content"
