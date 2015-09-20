@@ -35,15 +35,13 @@ public class GeigerCounterActivity extends AppCompatActivity implements SensorEv
     private float[] readingAccelerometer = new float[3];
 
     private SoundPool soundPool;
-    private int idHighClick;
-    private int idMidClick;
-    private int idLowClick;
     private int highClick;
     private int midClick;
     private int lowClick;
 
-    private float ALPHA = 0.15f;
-
+    private boolean s1 = false;
+    private boolean s2 = false;
+    private boolean s3 = false;
     private boolean loadingCompleted = false;
 
     @Override
@@ -125,27 +123,20 @@ public class GeigerCounterActivity extends AppCompatActivity implements SensorEv
     @Override
     public void onSensorChanged(SensorEvent event) {
         //Log.d("onSensorChanged", "onSensorChanged HAS STARTED");
-        float[] rotation = new float[9];
-        float[] orientation = new float[3];
 
         if(event.sensor == accelerometer)
         {
-            readingAccelerometer = lowPass(event.values, readingAccelerometer);
+//            readingAccelerometer = lowPass(event.values, readingAccelerometer);
+            readingAccelerometer[0] = event.values[0];
+            readingAccelerometer[1] = event.values[1];
+            readingAccelerometer[2] = event.values[2];
         }
 
-//        SensorManager.getOrientation(rotation, orientation);
-//        float azimuthRadians = orientation[0];
-//        float azimuthDegrees = -(float) (Math.toDegrees(azimuthRadians) + 360) % 360;
-
-
-
         doGeigerStuff(readingAccelerometer);
-//        currentCompassAngle = azimuthDegrees;
     }
 
     public void doGeigerStuff(float[] readings)
     {
-//        Drawable skeleton = getDrawable(R.drawable.skeleton);
         float x = readings[0];
         float y = readings[1];
         float z = readings[2];
@@ -158,25 +149,31 @@ public class GeigerCounterActivity extends AppCompatActivity implements SensorEv
 
             if (y >= 9f &&  y <= 10f)
             {
+                soundPool.stop(highClick);
+                soundPool.stop(lowClick);
                 ivHumanStatus.setImageResource(R.drawable.doing_good);
-                soundPool.play(lowClick, 0.5f, 0.5f, 5, -1, 1f);
+                soundPool.play(lowClick, 0.5f, 0.5f, 1, -1, 1f);
                 tvRads.setText("Total Rads: " + rads);
             }
-            else if(y >= 7f && y < 9f)
+            if(y >= 6f && y < 9f)
             {
-
                 ivHumanStatus.setImageResource(R.drawable.protivogaz);
+//                soundPool.play(lowClick, 0.5f, 0.5f, 5, -1, 1f);
                 tvRads.setText("Total Rads: " + (rads += 0.05));
             }
-            else if (y >= 3f && y < 7f)
+            if (y >= 3f && y < 6f)
             {
-                soundPool.play(midClick, 0.5f, 0.5f, 5, -1, 1f);
+                soundPool.stop(highClick);
+                soundPool.stop(lowClick);
+                soundPool.play(midClick, 0.5f, 0.5f, 1, -1, 1f);
                 ivHumanStatus.setImageResource(R.drawable.zombie);
                 tvRads.setText("Total Rads: " + (rads += 0.1));
             }
-            else if (y >= 0f && y < 3f )
+            if (y >= 0f && y < 3f )
             {
-                soundPool.play(highClick, 0.5f, 0.5f, 5, -1, 1f);
+                soundPool.stop(midClick);
+                soundPool.stop(lowClick);
+                soundPool.play(highClick, 0.5f, 0.5f, 1, -1, 1f);
                 ivHumanStatus.setImageResource(R.drawable.skeleton);
                 tvRads.setText("Total Rads: " + (rads += 0.25));
             }
@@ -217,37 +214,31 @@ public class GeigerCounterActivity extends AppCompatActivity implements SensorEv
 
     @Override
     public void onLoadComplete(SoundPool soundPool, int sampleId, int status) {
-        Log.d("onLoadComplete", "onLoadComplete HAS STARTED");
+        //Log.d("onLoadComplete", "onLoadComplete HAS STARTED");
+
         if(status == 0){
             if (sampleId == highClick)
             {
+                s1 = true;
                 Log.d("High", "Loaded High");
             }
             if (sampleId == midClick)
             {
+                s2 = true;
                 Log.d("Mid", "Loaded Mid");
             }
             if (sampleId == lowClick)
             {
+                s3 = true;
                 Log.d("Low", "Loaded Low");
             }
-            loadingCompleted = true;
+            if(s1 && s2 && s3)
+                loadingCompleted = true;
         }
         else
         {
             Toast.makeText(GeigerCounterActivity.this, "Error loading sound: " + sampleId, Toast.LENGTH_LONG).show();
         }
-        Log.d("onLoadComplete", "onLoadComplete HAS FINISHED");
-    }
-
-    protected float[] lowPass(float[] input, float[] output)
-    {
-        if(output == null)
-            return input;
-        for (int i = 0; i < input.length; i++)
-        {
-            output[i] = output[i] + ALPHA * (input[i] - output[i]);
-        }
-        return output;
+       //Log.d("onLoadComplete", "onLoadComplete HAS FINISHED");
     }
 }
