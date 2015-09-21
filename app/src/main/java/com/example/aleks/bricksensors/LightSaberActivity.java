@@ -36,6 +36,12 @@ public class LightSaberActivity extends AppCompatActivity implements SoundPool.O
     private int hf;
     private int lf;
 
+    private int saberOn;
+    private int saberHum;
+
+    private boolean s1 = false;
+    private boolean s2 = false;
+    private boolean s3 = false;
     private boolean loadingCompleted = false;
 
     @Override
@@ -59,9 +65,13 @@ public class LightSaberActivity extends AppCompatActivity implements SoundPool.O
             Toast.makeText(this, "Pre Lollipop", Toast.LENGTH_LONG).show();
         }
         soundPool.setOnLoadCompleteListener(this);
-        hf = soundPool.load(this, R.raw.hf, 1);
-        lf = soundPool.load(this, R.raw.lf, 2);
+//        hf = soundPool.load(this, R.raw.hf, 1);
+//        lf = soundPool.load(this, R.raw.lf, 2);
+        saberOn = soundPool.load(this, R.raw.saber_on, 1);
+        saberHum = soundPool.load(this, R.raw.saber_hum2, 1);
         saberSwing = soundPool.load(this, R.raw.saberswing, 3);
+
+
     }
 
     @SuppressWarnings("deprecation")
@@ -108,21 +118,32 @@ public class LightSaberActivity extends AppCompatActivity implements SoundPool.O
         Log.d("onLoadComplete", "onLoadComplete HAS STARTED");
         if (status == 0)
         {
-            if(sampleId == hf)
+            if(sampleId == saberOn)
             {
-                soundPool.play(hf, 0.2f, 0.2f, 1, -1, 1f);
-                Log.d("hf", "Loaded hf");
+                soundPool.play(saberOn, 1f, 1f, 1, 0, 1f);
+                s1 = true;
+                Log.d("onLoadComplete", "Loaded saberOn");
             }
-            if(sampleId == lf)
+            if(sampleId == saberHum)
             {
-                soundPool.play(lf, 1f, 1f, 1, -1, 1f);
-                Log.d("lf", "Loaded lf");
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                soundPool.play(saberHum, 0.7f, 0.7f, 1, -1, 1f);
+                s2 = true;
+                Log.d("onLoadComplete", "Loaded saberHum");
             }
             if(sampleId == saberSwing)
             {
-                Log.d("Swing", "Loaded Swing");
+                s3 = true;
+                Log.d("onLoadComplete", "Loaded Swing");
             }
-            loadingCompleted = true;
+            if(s1 && s2 && s3)
+            {
+                loadingCompleted = true;
+            }
         }
         else
         {
@@ -136,8 +157,8 @@ public class LightSaberActivity extends AppCompatActivity implements SoundPool.O
     {
         super.onDestroy();
         soundPool.stop(saberSwing);
-        soundPool.stop(hf);
-        soundPool.stop(lf);
+        soundPool.stop(saberOn);
+        soundPool.stop(saberHum);
         soundPool.release();
     }
 
@@ -165,81 +186,34 @@ public class LightSaberActivity extends AppCompatActivity implements SoundPool.O
 
         if(event.sensor == accelerometer)
         {
-//            readingAccelerometer[0] = event.values[0];
-//            readingAccelerometer[1] = event.values[1];
-//            readingAccelerometer[2] = event.values[2];
-            readingAccelerometer = lowPass(event.values, readingAccelerometer);
+            readingAccelerometer[0] = event.values[0];
+            readingAccelerometer[1] = event.values[1];
+            readingAccelerometer[2] = event.values[2];
+//            readingAccelerometer = lowPass(event.values, readingAccelerometer);
         }
 
-        if(event.sensor == magnometer)
-        {
-//            readingMagnometer[0] = event.values[0];
-//            readingMagnometer[1] = event.values[1];
-//            readingMagnometer[2] = event.values[2];
-            readingMagnometer = lowPass(event.values, readingMagnometer);
-        }
+//        if(event.sensor == magnometer)
+//        {
+////            readingMagnometer[0] = event.values[0];
+////            readingMagnometer[1] = event.values[1];
+////            readingMagnometer[2] = event.values[2];
+////            readingMagnometer = lowPass(event.values, readingMagnometer);
+//        }
 
         SensorManager.getRotationMatrix(rotation, null, readingAccelerometer, readingMagnometer);
         SensorManager.getOrientation(rotation, orientation);
         float azimuthRadians = orientation[0];
         float azimuthDegrees = -(float) (Math.toDegrees(azimuthRadians) + 360) % 360;
 
-        doSaberSounds(readingAccelerometer, azimuthDegrees);
+        doSaberSounds(readingAccelerometer);
     }
 
-    public void doSaberSounds(float[] readings, float deg)
+    public void doSaberSounds(float[] readings)
     {
         if(loadingCompleted) {
             if (readings[0] < 8)
-//                Log.d("d", "d");
-                soundPool.play(saberSwing, 0.8f, 0.8f, 1, 1, 1f);
-//            if (readings[0] < -4 && readings[0] > -6 || readings[0] > 4 && readings[0] <6) {
-//                soundPool.play(saberSwing, 0.2f, 0.2f, 1, 1, 1f);
-//                //soundPool.setVolume(saberSwing, 0.1f, 0.1f);
-//            }
-//            if(readings[0] <= -6 || readings[0] >= 6)
-//            {
-////                soundPool.play(saberSwing, 0.8f, 0.8f, 1, 1, 1f);
-////                try {
-////                    TimeUnit.MILLISECONDS.sleep(500);
-////                } catch (InterruptedException e) {
-////                    e.printStackTrace();
-////                }
-//                soundPool.setVolume(saberSwing, 0.8f, 0.8f);
-//            }
-//            if(readings[0] <= -8 || readings[0] >= 8)
-//            {
-////                soundPool.play(saberSwing, 0.2f, 0.2f, 1, 1, 1f);
-////                try {
-////                    TimeUnit.MILLISECONDS.sleep(500);
-////                } catch (InterruptedException e) {
-////                    e.printStackTrace();
-////                }
-//                soundPool.setVolume(saberSwing, 0.1f, 0.1f);
-//            }
-            //===============================================
-//            if(Math.abs(readings[0]) > Math.abs(readings[1]))
-//            {
-//                if (readings[0] < 0)
-//                {
-//                    soundPool.play(saberSwing, 0.2f, 0.2f, 1, 1, 1f);
-//                }
-//                if (readings[0] > 0)
-//                {
-//                    soundPool.play(saberSwing, 0.2f, 0.2f, 1, 1, 1f);
-//                }
-//            }
-//            else
-//            {
-//                if (readings[1] < 0)
-//                {
-//                    soundPool.play(saberSwing, 0.2f, 0.2f, 1, 1, 1f);
-//                }
-//                if (readings[1] > 0)
-//                {
-//                    soundPool.play(saberSwing, 0.2f, 0.2f, 1, 1, 1f);
-//                }
-//            }
+                loadingCompleted = true;
+                //soundPool.play(saberSwing, 0.8f, 0.8f, 1, 1, 1f);
         }
     }
 
