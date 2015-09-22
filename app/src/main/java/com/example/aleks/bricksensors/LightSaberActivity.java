@@ -16,6 +16,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class LightSaberActivity extends AppCompatActivity implements SoundPool.OnLoadCompleteListener, SensorEventListener {
@@ -24,7 +25,9 @@ public class LightSaberActivity extends AppCompatActivity implements SoundPool.O
 
     private SensorManager sensorManager;
     private Sensor accelerometer;
+    private Sensor magnometer;
     private float[] readingAccelerometer = new float[3];
+    private float[] readingMagnometer = new float[3];
 
     private SoundPool soundPool;
     private int saberSwing;
@@ -32,8 +35,11 @@ public class LightSaberActivity extends AppCompatActivity implements SoundPool.O
     private int saberHum;
     private int imperialMarch;
 
-//    private boolean swingPlayedOnce = false;
 //    private boolean marchPlaying = false;
+
+//    private TextView tvLsA;
+//    private TextView tvLsB;
+//    private TextView tvLsC;
 
     private boolean s1 = false;
     private boolean s2 = false;
@@ -49,6 +55,11 @@ public class LightSaberActivity extends AppCompatActivity implements SoundPool.O
         lightSaber = (ImageView)findViewById(R.id.ivLightSaber);
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        magnometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+
+//        tvLsA = (TextView) findViewById(R.id.tvLsA);
+//        tvLsB = (TextView) findViewById(R.id.tvLsB);
+//        tvLsC = (TextView) findViewById(R.id.tvLsC);
 
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
         {
@@ -166,6 +177,7 @@ public class LightSaberActivity extends AppCompatActivity implements SoundPool.O
     {
         super.onResume();
         sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME);
+        sensorManager.registerListener(this, magnometer, SensorManager.SENSOR_DELAY_GAME);
         soundPool.autoResume();
     }
 
@@ -174,13 +186,16 @@ public class LightSaberActivity extends AppCompatActivity implements SoundPool.O
     {
         super.onPause();
         sensorManager.unregisterListener(this, accelerometer);
+        sensorManager.unregisterListener(this, magnometer);
         soundPool.autoPause();
     }
 
     @Override
     public void onSensorChanged(SensorEvent event) {
 
-//        swingPlayedOnce = false;
+        float[] rotation = new float[9];
+        float[] orientation = new float[3];
+
         if(event.sensor == accelerometer)
         {
             readingAccelerometer[0] = event.values[0];
@@ -188,56 +203,107 @@ public class LightSaberActivity extends AppCompatActivity implements SoundPool.O
             readingAccelerometer[2] = event.values[2];
         }
 
-        doSaberSounds(readingAccelerometer);
-    }
+        if(event.sensor == magnometer)
+        {
+            readingMagnometer[0] = event.values[0];
+            readingMagnometer[1] = event.values[1];
+            readingMagnometer[2] = event.values[2];
+        }
 
-    public void doSaberSounds(float[] readings)
+        SensorManager.getRotationMatrix(rotation, null, readingAccelerometer, readingMagnometer);
+        SensorManager.getOrientation(rotation, orientation);
+        Log.d("onSensorChanged", "Orientation: " + orientation[0] + ", " + orientation[1] + ", " + orientation[2] );
+
+        float azimuthRadians = orientation[0];
+        float azimuthDegrees = -(float) (Math.toDegrees(azimuthRadians) + 360) % 360;
+
+
+            //doSaberSounds(readingAccelerometer);
+        doSaberSoundsNew(orientation);
+        }
+
+    public void doSaberSoundsNew(float[] orientation)
     {
-        if(loadingCompleted) {
-//           if(!swingPlayedOnce)
-//           {
-               if (readings[0] < 4 && readings[0] > 3.7)
-               {
-                   // soundPool.pause(saberHum);
-                   soundPool.play(saberSwing, 0.8f, 0.8f, 1, 0, 1f);
-                   try {
-                       Thread.sleep(400);
-                   } catch (InterruptedException e) {
-                       e.printStackTrace();
-                   }
-                   //soundPool.stop(saberSwing);
-//                  soundPool.resume(saberHum);
-                   soundPool.play(saberHum, 0.7f, 0.7f, 1, -1, 1f);
-//                   swingPlayedOnce = true;
-               }
-               else if (readings[0] < -3.7 && readings[0] > -4)
-               {
-                   //soundPool.pause(saberHum);
-                   soundPool.play(saberSwing, 0.8f, 0.8f, 1, 0, 1f);
-                   try {
-                       Thread.sleep(400);
-                   } catch (InterruptedException e) {
-                       e.printStackTrace();
-                   }
-                   soundPool.play(saberHum, 0.7f, 0.7f, 1, -1, 1f);
-//                soundPool.resume(saberHum);
-//                   swingPlayedOnce = true;
-               }
-//           }
+        float pitch = orientation[1]*= 57.2957795f;
+        float roll = orientation[2]*= 57.2957795f;
 
+//        if (orientation[0]<0)
+//            orientation[0] += 360;
+//        // Pitch scaling
+//        if (orientation[1]<-90)
+//            orientation[1] += (-2*(90+orientation[1]));
+//        else if (orientation[1]>90)
+//            orientation[1] += (2*(90-orientation[1]));
+//          DEBUG CODE
+//        tvLsA.setText("X: " + orientation[0]);
+//        tvLsB.setText("Y: " + pitch);
+//        tvLsC.setText("Z: " + roll);
+
+        if(loadingCompleted)
+        {
+//            if (pitch < -45 && pitch > -135) {
+//                soundPool.play(saberSwing, 0.8f, 0.8f, 1, 0, 1f);
+//            } else if (pitch > 45 && pitch < 135) {
+//                soundPool.play(saberSwing, 0.8f, 0.8f, 1, 0, 1f);
+//            }
+
+            //soundPool.play(saberHum, 1f, 1f, 1, -1, 1f);
+//
+            if (roll > 45 && roll < 110) {
+                soundPool.play(saberSwing, 0.8f, 0.8f, 1, 0, 1f);
+            } else if (roll < -45 && roll > -110) {
+                soundPool.play(saberSwing, 0.8f, 0.8f, 1, 0, 1f);
+            }
         }
     }
+
+    // USING ACCELEROMETER ONLY
+//    public void doSaberSounds(float[] readings)
+//    {
+//        if(loadingCompleted) {
+////           if(!swingPlayedOnce)
+////           {
+//               if (readings[0] < 4 && readings[0] > 3.7)
+//               {
+//                   // soundPool.pause(saberHum);
+//                   soundPool.play(saberSwing, 0.8f, 0.8f, 1, 0, 1f);
+//                   try {
+//                       Thread.sleep(400);
+//                   } catch (InterruptedException e) {
+//                       e.printStackTrace();
+//                   }
+//                   //soundPool.stop(saberSwing);
+////                  soundPool.resume(saberHum);
+//                   soundPool.play(saberHum, 0.7f, 0.7f, 1, -1, 1f);
+////                   swingPlayedOnce = true;
+//               }
+//               else if (readings[0] < -3.7 && readings[0] > -4)
+//               {
+//                   //soundPool.pause(saberHum);
+//                   soundPool.play(saberSwing, 0.8f, 0.8f, 1, 0, 1f);
+//                   try {
+//                       Thread.sleep(400);
+//                   } catch (InterruptedException e) {
+//                       e.printStackTrace();
+//                   }
+//                   soundPool.play(saberHum, 0.7f, 0.7f, 1, -1, 1f);
+////                soundPool.resume(saberHum);
+////                   swingPlayedOnce = true;
+//               }
+////           }
+//
+//        }
+//    }
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
     }
-//
+//    SOUNDPOOL IS NOT VERY GOOD, CANNOT DETECT WHEN SOUNDS STOP PLAYING, THUS METHOD NOT USED
 //    public void onBtnVaderClick(View view) {
 //        Log.d("Imperial", "marchPlaying: " + marchPlaying);
 //        if (!marchPlaying)
 //        {
-//            soundPool.stop(saberHum);
 //            marchPlaying = true;
 //            soundPool.play(imperialMarch, 1f, 1f, 1, 0, 1f);
 //            marchPlaying = false;
